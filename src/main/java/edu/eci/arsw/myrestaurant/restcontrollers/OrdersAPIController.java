@@ -37,6 +37,7 @@ import org.springframework.web.bind.annotation.RestController;
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
 import java.lang.reflect.Type;
+
 /**
  *
  * @author hcadavid
@@ -61,18 +62,18 @@ public class OrdersAPIController {
             } catch (OrderServicesException ex) {
                 Logger.getLogger(OrdersAPIController.class.getName()).log(Level.SEVERE, null, ex);
             }
-        });    
+        });
         String listord_json = g.toJson(listaord);
         return new ResponseEntity<>(listord_json, HttpStatus.ACCEPTED);
 
     }
 
-    @RequestMapping(method = RequestMethod.GET, path = "/{idName}")
-    public ResponseEntity<?> getOrder(@PathVariable String idName) {
+    @RequestMapping(method = RequestMethod.GET, path = "/{idTable}")
+    public ResponseEntity<?> getOrder(@PathVariable String idTable) {
         try {
             Map<String, Order> listaord = new HashMap<>();
 
-            listaord.put(idName, services.getTableOrder(Integer.parseInt(idName)));
+            listaord.put(idTable, services.getTableOrder(Integer.parseInt(idTable)));
             String listaord_json = g.toJson(listaord);
             return new ResponseEntity<>(listaord_json, HttpStatus.ACCEPTED);
         } catch (OrderServicesException e) {
@@ -85,11 +86,12 @@ public class OrdersAPIController {
     public ResponseEntity<?> postOrders(@RequestBody String jsonOrder) {
 
         try {
-            Type listType = new TypeToken<Map<String, Order>>(){}.getType();
+            Type listType = new TypeToken<Map<String, Order>>() {
+            }.getType();
             Map<String, Order> listaord = g.fromJson(jsonOrder, listType);
             Set<String> keys = listaord.keySet();
             for (String s : keys) {
-                System.out.println(s + "  ->   " + listaord.get(s));
+
                 services.addNewOrderToTable(listaord.get(s));
             }
             return new ResponseEntity<>(HttpStatus.CREATED);
@@ -99,5 +101,14 @@ public class OrdersAPIController {
         }
     }
 
-}
+    @RequestMapping(method = RequestMethod.GET, path = "/{idTable}/total")
+    public ResponseEntity<?> getTotalTableBill(@PathVariable String idTable) {
+        try {
+            return new ResponseEntity<>("The total bill to pay is: " + services.calculateTableBill(Integer.parseInt(idTable)), HttpStatus.ACCEPTED);
+        } catch (OrderServicesException ex) {
+            Logger.getLogger(OrdersAPIController.class.getName()).log(Level.SEVERE, null, ex);
+            return new ResponseEntity<>(ex.getMessage(), HttpStatus.NOT_FOUND);
+        }
+    }
 
+}
