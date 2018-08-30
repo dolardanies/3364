@@ -1,0 +1,1 @@
+curl -i -X POST -HContent-Type:application/json -HAccept:application/json http://localhost:8080/orders -d '{"2":{"orderAmountsMap":{"HAMBURGER":2,"PIZZA":3,"BEER":2},"tableNumber":2}}'
