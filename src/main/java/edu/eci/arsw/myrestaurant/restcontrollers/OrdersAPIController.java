@@ -16,23 +16,19 @@
  */
 package edu.eci.arsw.myrestaurant.restcontrollers;
 
-import edu.eci.arsw.myrestaurant.model.Order;
-import edu.eci.arsw.myrestaurant.model.ProductType;
-import edu.eci.arsw.myrestaurant.model.RestaurantProduct;
-import edu.eci.arsw.myrestaurant.services.OrderServicesException;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import edu.eci.arsw.myrestaurant.services.RestaurantOrderServices;
-import edu.eci.arsw.myrestaurant.services.RestaurantOrderServicesStub;
-import java.util.Hashtable;
+import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import static org.springframework.http.converter.json.Jackson2ObjectMapperBuilder.json;
 import org.springframework.stereotype.Service;
-import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
@@ -42,22 +38,28 @@ import org.springframework.web.bind.annotation.RestController;
  * @author hcadavid
  */
 @RestController
-@RequestMapping(value = "/orders")
+@RequestMapping(value = "/orders/{idmesa}")
 @Service
 public class OrdersAPIController {
-    
+
     @Autowired
-    RestaurantOrderServices service;
+    RestaurantOrderServices services;
 
     @RequestMapping(method = RequestMethod.GET)
-    public ResponseEntity<?> getOrders() {
+    public ResponseEntity<?> getOrders(@PathVariable String idmesa) throws JsonProcessingException {
+        //obtener datos que se enviarán a través del API
         try {
-            //obtener datos que se enviarán a través del API
-            return new ResponseEntity<>(json, HttpStatus.ACCEPTED);
-        } catch (OrderServicesException ex) {
-            Logger.getLogger(OrdersAPIController.class.getName()).log(Level.SEVERE, null, ex);
-            return new ResponseEntity<>("Error", HttpStatus.NOT_FOUND);
-        }
-    }
+            Set<Integer> two = services.getTablesWithOrders();
+            Map<Integer, String> listaord = new HashMap<Integer, String>();
+            int id = Integer.parseInt(idmesa);
+            listaord.put(id, services.getTableOrder(id).toString());
 
+            String jsonformat = new ObjectMapper().writeValueAsString(listaord);
+            return new ResponseEntity<>(jsonformat, HttpStatus.ACCEPTED);
+        } catch (JsonProcessingException ex) {
+            Logger.getLogger(OrdersAPIController.class.getName()).log(Level.SEVERE, null, ex);
+            return new ResponseEntity<>("Error 404", HttpStatus.NOT_FOUND);
+        }
+
+    }
 }
